@@ -130,7 +130,7 @@ angular.module('cat5scouting.services', [])
             query += " note = (?),";
         }
 
-        //add the robot ID to the parameters
+        //add the team ID to the parameters
         parameters.push(editTeam.id);
 
         //remove the trailing comma from the last part of the query text
@@ -139,7 +139,7 @@ angular.module('cat5scouting.services', [])
             query = query.substring(0,length-1);
         }
         
-        //add the robot ID and the match ID to the query
+        //add the team ID and the match ID to the query
         query += "WHERE (id = (?))";
         
         //output the query to the console for testing purposes
@@ -155,12 +155,12 @@ angular.module('cat5scouting.services', [])
 
 /******************************************************************************/
 
-.factory('TeamMatch', function($cordovaSQLite, DBA, Robot) {
+.factory('TeamMatch', function($cordovaSQLite, DBA) {
     var self = this;
     
     /*
-        This function returns all recorded robot name/match number combinations
-        by joining the `robot` table and `match` table with the `teamMatch` 
+        This function returns all recorded team/match number combinations
+        by joining the `team` table and `match` table with the `teamMatch` 
         table
     */
     self.all = function() {
@@ -256,7 +256,7 @@ angular.module('cat5scouting.services', [])
             query += " scoredContainerHeight = (?),";
         }
 
-        //add the robot ID and the match ID to the parameters
+        //add the team ID and the match ID to the parameters
         parameters.push(editTeam.teamId);
         parameters.push(editTeam.matchId);
         
@@ -266,7 +266,7 @@ angular.module('cat5scouting.services', [])
             query = query.substring(0,length-1);
         }
         
-        //add the robot ID and the match ID to the query
+        //add the team ID and the match ID to the query
         query += "WHERE (teamId = (?)) AND (matchId = (?))";
         
         //output the query to the console for testing purposes

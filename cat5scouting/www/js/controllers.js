@@ -183,7 +183,8 @@ angular.module('cat5scouting.controllers', ['ngCordova'])
     returns false (meaning don't disable the fields)
   */
   $scope.disableFields = function() {
-    return $scope.selectedTeam == null;
+    console.log("disableFields called; $scope.team = " + $scope.team);
+    return $scope.team == null;
   }
   
   /*
@@ -192,6 +193,7 @@ angular.module('cat5scouting.controllers', ['ngCordova'])
   */
   $scope.selectTeam = function() {
     //reset all the fields
+    $scope.selectedTeam = $scope.team;
     $scope.driveMode = $scope.data.driveModes[0];
     $scope.driveSpeed = $scope.data.driveSpeeds[0];
     $scope.driveOverPlatform = $scope.data.yesNo[0];
@@ -210,9 +212,7 @@ angular.module('cat5scouting.controllers', ['ngCordova'])
     This function is called each time a field is updated.
   */
   $scope.teamChanged = function() {
-    //TODO: Figure out why Stack Containers Independently isn't populating when 
-    //the robot is selected after the value has been persisted
-    var editTeam = angular.copy($scope.selectedRobot);
+    var editTeam = angular.copy($scope.team);
     editTeam.driveMode = $scope.driveMode || $scope.data.driveModes[0];
     editTeam.driveSpeed = $scope.driveSpeed || $scope.data.driveSpeeds[0];
     editTeam.driveOverPlatform = $scope.driveOverPlatform || $scope.data.yesNo[0];
@@ -224,7 +224,7 @@ angular.module('cat5scouting.controllers', ['ngCordova'])
     editTeam.stackContInd = $scope.stackContInd || $scope.data.yesNo[0];
     editTeam.collectContStep = $scope.collectContStep || 0;
     editTeam.note = $scope.note || "";
-    Team.update($scope.selectedRobot, editTeam);
+    Team.update($scope.team, editTeam);
   }
 })
 
@@ -397,9 +397,8 @@ angular.module('cat5scouting.controllers', ['ngCordova'])
           $scope.scoredIndContainerHeight = 0;
           $scope.scoredContainerHeight = 0;
           
-          //then create a robot object with the same values
+          //then create a team-match object with the same values
           var newTeamMatch = [];
-          newTeamMatch.robotId = $scope.selectedRobot.id;
           newTeamMatch.matchId = $scope.match.id;
           newTeamMatch.driveSpeed = $scope.data.driveSpeeds[0];
           newTeamMatch.driveOverPlatform = $scope.data.yesNo[0];
@@ -427,7 +426,7 @@ angular.module('cat5scouting.controllers', ['ngCordova'])
     This function is called when a match number is selected
   */
   $scope.selectMatch = function() {
-    $scope.selectRobot();
+    $scope.selectTeam();
   }
   
   /*
