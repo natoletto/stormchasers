@@ -26,15 +26,23 @@ angular.module('cat5scouting', ['ionic', 'cat5scouting.controllers', 'cat5scouti
      * Add to this section each time you add a new table definition */
      
       $cordovaSQLite.execute(db, "DROP TABLE `team`");
-      $cordovaSQLite.execute(db, "DROP TABLE `robot`");
       $cordovaSQLite.execute(db, "DROP TABLE `match`");
-      $cordovaSQLite.execute(db, "DROP TABLE `robotMatch`");
+      $cordovaSQLite.execute(db, "DROP TABLE `teamMatch`");
     /**/
+
+    /* The following tables should be updated each year to match the questions
+       that match that year's competition. The following questions match the 
+       2015 FRC competition. Each team will likely have its own list of 
+       questions. See the documentation for the project for details about 
+       branching this code so that you can keep your secret sauce secret. */
+
+    /* The team table contains information ab out the team, itself, as well as
+       the claims that they make about their robot's capabilities (known as "pit
+       scouting.") */
     
-    $cordovaSQLite.execute(db, "CREATE TABLE `team` (`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT UNIQUE,	`number` INTEGER NOT NULL UNIQUE)");
-    $cordovaSQLite.execute(db, "CREATE TABLE `robot` (`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-                                                   + "`name` TEXT NOT NULL, "
-                                                   + "`teamId` INTEGER NOT NULL, "
+    $cordovaSQLite.execute(db, "CREATE TABLE `team` ( `id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                                                   + "`name` TEXT UNIQUE,	" 
+                                                   + "`number` INTEGER NOT NULL UNIQUE, "
                                                    + "`driveMode` INTEGER, "
                                                    + "`driveSpeed` INTEGER, "
                                                    + "`driveOverPlatform` INTEGER, "
@@ -45,13 +53,18 @@ angular.module('cat5scouting', ['ionic', 'cat5scouting.controllers', 'cat5scouti
                                                    + "`maxContHeight` INTEGER, "
                                                    + "`stackContInd` INTEGER, "
                                                    + "`collectContStep` INTEGER, "
-                                                   + "`note` TEXT, "
-                                                   + "FOREIGN KEY(`teamId`) REFERENCES team ( id ))");
+                                                   + "`note` TEXT)");
+    
+    /* The match table contains a list of numbers from 1 to n, where n is the 
+    number of matches planned for a given competition */
+
     $cordovaSQLite.execute(db, "CREATE TABLE `match` (`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `number` INTEGER NOT NULL UNIQUE)");
 
-    $cordovaSQLite.execute(db, "CREATE TABLE `robotMatch` (`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+    /* The teamMatch table contains information about the observed capabilties 
+       for a robot within a given match (known as "match scouting"). */
+
+    $cordovaSQLite.execute(db, "CREATE TABLE `teamMatch` (`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
                                                         + "`matchId` INTEGER, "
-                                                        + "`robotId` INTEGER, "
                                                         + "`teamId` INTEGER, "
                                                         + "`driveSpeed` INTEGER, "
                                                         + "`driveOverPlatform` INTEGER, "
@@ -67,7 +80,6 @@ angular.module('cat5scouting', ['ionic', 'cat5scouting.controllers', 'cat5scouti
                                                         + "`scoredIndContainerHeight` INTEGER, "
                                                         + "`scoredContainerHeight` INTEGER, "
                                                         + "FOREIGN KEY(`matchId`) REFERENCES match ( id ), "
-                                                        + "FOREIGN KEY(`robotId`) REFERENCES robot ( id ), "
                                                         + "FOREIGN KEY(`teamId`) REFERENCES team ( id ))");
     
     /* Load the database with test values
@@ -92,7 +104,7 @@ angular.module('cat5scouting', ['ionic', 'cat5scouting.controllers', 'cat5scouti
     
     var teams = [
                   1225, 1226, 1293, 1398, 1553, 1598, 1758, 2059, 281, 2815, 
-                  283, 342, 343, 3489, 3490, 3976, 4083, 4451, 4533, 4534, 
+                  283, 342, 343, 3489, 3490, 3976, 408, 4451, 4533, 4534, 
                   4901, 4935, 4955, 4965, 8101
                 ];
                 
@@ -105,41 +117,6 @@ angular.module('cat5scouting', ['ionic', 'cat5scouting.controllers', 'cat5scouti
       });
     }
     
-    var query = "INSERT INTO robot (name, teamId) VALUES (?,?)";
-    for (var i=1; i<=teams.length; i++) {
-      console.log("i = " + i);
-      $cordovaSQLite.execute(db, query, ["Robot", i]).then(function(res) {
-        console.log("robot insertId: " + res.insertId + " with teamId: " + i);
-      }, function (err) {
-        console.error(err);
-      });
-    }
-
-
-
-    
-    /*
-    var query = "INSERT INTO robot (name, teamId) VALUES (?,?)";
-    $cordovaSQLite.execute(db, query, ["Mechatrina", 1]).then(function(res) {
-      console.log("robot insertId: " + res.insertId);
-    }, function (err) {
-      console.error(err);
-    });
-    
-    var query = "INSERT INTO robot (name, teamId) VALUES (?,?)";
-    $cordovaSQLite.execute(db, query, ["Hugo", 1]).then(function(res) {
-      console.log("robot insertId: " + res.insertId);
-    }, function (err) {
-      console.error(err);
-    });
-    
-    var query = "INSERT INTO robot (name, teamId) VALUES (?,?)";
-    $cordovaSQLite.execute(db, query, ["Megatron", 2]).then(function(res) {
-      console.log("robot insertId: " + res.insertId);
-    }, function (err) {
-      console.error(err);
-    });
-    */
     for (var i=1; i<32; i++) {
       var query = "INSERT INTO match (number) VALUES (?)";
       $cordovaSQLite.execute(db, query, [i]).then(function(res) {
@@ -148,17 +125,7 @@ angular.module('cat5scouting', ['ionic', 'cat5scouting.controllers', 'cat5scouti
         console.error(err);
       });
     }
-    
-    /*
-    var query = "INSERT INTO robotMatch(robotId, matchId, driveSpeed) VALUES (?, ?, ?);";
-    $cordovaSQLite.execute(db, query, [1, 1, 1]).then(function(res) {
-      console.log("match insertId: " + res.insertId);
-    }, function (err) {
-      console.error(err);
-    });
-    */
-    
-    /**/
+
   });
 })
 

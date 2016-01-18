@@ -58,103 +58,80 @@ angular.module('cat5scouting.services', [])
             })
     }
     
-    self.get = function(memberId) {
-        var parameters = [memberId];
-        return DBA.query("SELECT id, name, number FROM team WHERE id = (?)", parameters)
-            .then(function(result) {
-                return DBA.getById(result);
-            })
-    }
-    
-    return self;
-})
-    
-/******************************************************************************/
-
-.factory('Robot', function($cordovaSQLite, DBA) {
-    var self = this;
-    
-    self.all = function() {
-        return DBA.query("SELECT id, name FROM robot")
-            .then(function(result) {
-                return DBA.getAll(result);
-            })
-    }
-    
     self.getByTeam = function(teamId) {
         var parameters = [teamId];
-        return DBA.query("SELECT id, name FROM robot WHERE teamId = (?)", parameters)
+        return DBA.query("SELECT id, name, number FROM team WHERE id = (?)", parameters)
             .then(function(result) {
                 return DBA.getAll(result);
             })
     }
-    
-    self.getById = function(robotId) {
-        var parameters = [robotId];
-        return DBA.query("SELECT `id`, `name`, `teamId`, `driveMode`, `driveSpeed`, "
+
+    self.getById = function(teamId) {
+        var parameters = [teamId];
+        return DBA.query("SELECT `id`, `name`, `driveMode`, `driveSpeed`, "
                     +    "`driveOverPlatform`, `autonomousCapability`, "
                     +    "`coopStep`, `pickupLoc`, `maxToteHeight`, "
                     +    "`maxContHeight`, `stackContInd`, `collectContStep`, "
-                    +    "`note` from robot "
+                    +    "`note` from team "
                     +    "WHERE id = (?)", parameters)
             .then(function(result) {
                 return DBA.getById(result);
             })
     }
-    
-    self.update = function(origRobot, editRobot) {
+
+    self.update = function(origTeam, editTeam) {
         //build an update statement to include only values that have selections 
         //on the form
         var parameters = [];
-        var query = "UPDATE `robot` SET ";
+        var query = "UPDATE `team` SET ";
 
-        if (editRobot.driveMode) { 
-            parameters.push(editRobot.driveMode.id); 
+        if (editTeam.driveMode) { 
+            parameters.push(editTeam.driveMode.id); 
             query += " driveMode = (?),";
         }
-        if (editRobot.driveSpeed) { 
-            parameters.push(editRobot.driveSpeed.id); 
+        if (editTeam.driveSpeed) { 
+            parameters.push(editTeam.driveSpeed.id); 
             query += " driveSpeed = (?),";
         }
-        if (editRobot.driveOverPlatform) { 
-            parameters.push(editRobot.driveOverPlatform.id); 
+        if (editTeam.driveOverPlatform) { 
+            parameters.push(editTeam.driveOverPlatform.id); 
             query += " driveOverPlatform = (?),";
         }
-        if (editRobot.autonomousCapability) { 
-            parameters.push(editRobot.autonomousCapability.id); 
+        if (editTeam.autonomousCapability) { 
+            parameters.push(editTeam.autonomousCapability.id); 
             query += " autonomousCapability = (?),";
         }
-        if (editRobot.coopStep) { 
-            parameters.push(editRobot.coopStep.id); 
+        if (editTeam.coopStep) { 
+            parameters.push(editTeam.coopStep.id); 
             query += " coopStep = (?),";
         }
-        if (editRobot.pickupLoc) { 
-            parameters.push(editRobot.pickupLoc.id); 
+        if (editTeam.pickupLoc) { 
+            parameters.push(editTeam.pickupLoc.id); 
             query += " pickupLoc = (?),";
         }
-        if (editRobot.maxToteHeight) { 
-            parameters.push(editRobot.maxToteHeight.id); 
+        if (editTeam.maxToteHeight) { 
+            parameters.push(editTeam.maxToteHeight.id); 
             query += " maxToteHeight = (?),";
         }
-        if (editRobot.maxContHeight) { 
-            parameters.push(editRobot.maxContHeight.id); 
+        if (editTeam.maxContHeight) { 
+            parameters.push(editTeam.maxContHeight.id); 
             query += " maxContHeight = (?),";
         }
-        if (editRobot.stackContInd) { 
-            parameters.push(editRobot.stackContInd); 
+        if (editTeam.stackContInd) { 
+            parameters.push(editTeam.stackContInd); 
             query += " stackContInd = (?),";
         }
-        if (editRobot.collectContStep) { 
-            parameters.push(editRobot.collectContStep.id); 
+        if (editTeam.collectContStep) { 
+            parameters.push(editTeam.collectContStep.id); 
             query += " collectContStep = (?),";
         }
-        if (editRobot.note) { 
-            parameters.push(editRobot.note); 
+        if (editTeam.note) { 
+            parameters.push(editTeam.note); 
             query += " note = (?),";
         }
 
         //add the robot ID to the parameters
-        parameters.push(editRobot.id);
+        parameters.push(editTeam.id);
 
         //remove the trailing comma from the last part of the query text
         var length = query.length;
@@ -166,121 +143,122 @@ angular.module('cat5scouting.services', [])
         query += "WHERE (id = (?))";
         
         //output the query to the console for testing purposes
-        console.log("Query to update robot match record: " + query + " with robotId '" + editRobot.id + "'");
+        console.log("Query to update team record: " + query + " with teamId '" + editTeam.id + "'");
 
         //execute the query
         return DBA.query(query, parameters);
-    }
+    }    
     
     return self;
 })
+    
 
 /******************************************************************************/
 
-.factory('RobotMatch', function($cordovaSQLite, DBA, Robot) {
+.factory('TeamMatch', function($cordovaSQLite, DBA, Robot) {
     var self = this;
     
     /*
         This function returns all recorded robot name/match number combinations
-        by joining the `robot` table and `match` table with the `robotMatch` 
+        by joining the `robot` table and `match` table with the `teamMatch` 
         table
     */
     self.all = function() {
         return DBA.query("SELECT "
-                        +"  r.name, "
+                        +"  t.name, "
                         +"	m.number "
                         +"FROM "
-                        +"	`robotMatch` rm "
+                        +"	`teamMatch` tm "
                         +"LEFT OUTER JOIN "
-                        +"  `match` m ON rm.matchId=m.id "
+                        +"  `match` m ON tm.matchId=m.id "
                         +"LEFT OUTER JOIN "
-                        +"	`robot` r ON rm.robotId=r.id")
+                        +"	`team` t ON tm.teamId=t.id")
             .then(function(result) {
                 return DBA.getAll(result);
             })
     }
     
-    self.getById = function(robotId, matchId) {
-        if (robotId && matchId) {
-            var parameters = [robotId, matchId];
-            return DBA.query("SELECT rm.id, `matchId`, `robotId`, r.`teamId`, "
-                           + "rm.`driveSpeed`, rm.`driveOverPlatform`, `botSet`, "
+    self.getById = function(teamId, matchId) {
+        if (teamId && matchId) {
+            var parameters = [teamId, matchId];
+            return DBA.query("SELECT tm.id, `matchId`, `teamId`, t.`teamId`, "
+                           + "tm.`driveSpeed`, tm.`driveOverPlatform`, `botSet`, "
                            + "`toteSet`, `containerSet`, `stackedToteSet`, "
                            + "`coopScoreStep`, `feedstation`, `landfill`, "
                            + "`scoredToteHeight`, `containerStep`, "
                            + "`scoredIndContainerHeight`, `scoredContainerHeight` "
-                           + "FROM `robotMatch` rm "
+                           + "FROM `teamMatch` tm "
                            + "LEFT OUTER JOIN "
-                           + "`robot` r ON (rm.robotId = r.id) "
-                           + "WHERE r.id = (?) "
-                           + "AND rm.`matchId` = (?)", parameters)
+                           + "`team` t ON (tm.teamId = t.id) "
+                           + "WHERE t.id = (?) "
+                           + "AND tm.`matchId` = (?)", parameters)
                 .then(function(result) {
                     return DBA.getById(result);
                 })
         }
     }
     
-    self.update = function(origRobot, editRobot, match) {
+    self.update = function(origTeam, editTeam, match) {
         //build an update statement to include only values that have selections 
         //on the form
         var parameters = [];
-        var query = "UPDATE `robotMatch` SET ";
-        if (editRobot.driveSpeed) { 
-            parameters.push(editRobot.driveSpeed.id); 
+        var query = "UPDATE `teamMatch` SET ";
+        if (editTeam.driveSpeed) { 
+            parameters.push(editTeam.driveSpeed.id); 
             query += " driveSpeed = (?),";
         }
-        if (editRobot.driveOverPlatform) {
-            parameters.push(editRobot.driveOverPlatform.id); 
+        if (editTeam.driveOverPlatform) {
+            parameters.push(editTeam.driveOverPlatform.id); 
             query += " driveOverPlatform = (?),";
         }
-        if (editRobot.botSet) {
-            parameters.push(editRobot.botSet.id); 
+        if (editTeam.botSet) {
+            parameters.push(editTeam.botSet.id); 
             query += " botSet = (?),";
         }
-        if (editRobot.toteSet) {
-            parameters.push(editRobot.toteSet.id); 
+        if (editTeam.toteSet) {
+            parameters.push(editTeam.toteSet.id); 
             query += " toteSet = (?),";
         }
-        if (editRobot.containerSet) {
-            parameters.push(editRobot.containerSet.id); 
+        if (editTeam.containerSet) {
+            parameters.push(editTeam.containerSet.id); 
             query += " containerSet = (?),";
         }
-        if (editRobot.stackedToteSet) {
-            parameters.push(editRobot.stackedToteSet.id); 
+        if (editTeam.stackedToteSet) {
+            parameters.push(editTeam.stackedToteSet.id); 
             query += " stackedToteSet = (?),";
         }
-        if (editRobot.coopScoreStep) {
-            parameters.push(editRobot.coopScoreStep); 
+        if (editTeam.coopScoreStep) {
+            parameters.push(editTeam.coopScoreStep); 
             query += " coopScoreStep = (?),";
         }
-        if (editRobot.feedstation) {
-            parameters.push(editRobot.feedstation.id); 
+        if (editTeam.feedstation) {
+            parameters.push(editTeam.feedstation.id); 
             query += " feedstation = (?),";
         }
-        if (editRobot.landfill) {
-            parameters.push(editRobot.landfill.id); 
+        if (editTeam.landfill) {
+            parameters.push(editTeam.landfill.id); 
             query += " landfill = (?),";
         }
-        if (editRobot.scoredToteHeight) {
-            parameters.push(editRobot.scoredToteHeight); 
+        if (editTeam.scoredToteHeight) {
+            parameters.push(editTeam.scoredToteHeight); 
             query += " scoredToteHeight = (?),";
         }
-        if (editRobot.containerStep) {
-            parameters.push(editRobot.containerStep.id); 
+        if (editTeam.containerStep) {
+            parameters.push(editTeam.containerStep.id); 
             query += " containerStep = (?),";
         }
-        if (editRobot.scoredIndContainerHeight) {
-            parameters.push(editRobot.scoredIndContainerHeight); 
+        if (editTeam.scoredIndContainerHeight) {
+            parameters.push(editTeam.scoredIndContainerHeight); 
             query += " scoredIndContainerHeight = (?),";
         }
-        if (editRobot.scoredContainerHeight) {
-            parameters.push(editRobot.scoredContainerHeight); 
+        if (editTeam.scoredContainerHeight) {
+            parameters.push(editTeam.scoredContainerHeight); 
             query += " scoredContainerHeight = (?),";
         }
 
         //add the robot ID and the match ID to the parameters
-        parameters.push(editRobot.robotId);
-        parameters.push(editRobot.matchId);
+        parameters.push(editTeam.teamId);
+        parameters.push(editTeam.matchId);
         
         //remove the trailing comma from the last part of the query text
         var length = query.length;
@@ -289,21 +267,21 @@ angular.module('cat5scouting.services', [])
         }
         
         //add the robot ID and the match ID to the query
-        query += "WHERE (robotId = (?)) AND (matchId = (?))";
+        query += "WHERE (teamId = (?)) AND (matchId = (?))";
         
         //output the query to the console for testing purposes
-        console.log("Query to update robot match record: " + query + " with robotId '" + editRobot.robotId + "' and matchId '" + editRobot.matchId + "'");
+        console.log("Query to update team match record: " + query + " with teamId '" + editTeam.teamId + "' and matchId '" + editTeam.matchId + "'");
 
         //execute the query
         return DBA.query(query, parameters);
     }
     
-    self.add = function(robotMatch) {
+    self.add = function(teamMatch) {
         var parameters = [
-                            robotMatch.robotId, 
-                            robotMatch.matchId
+                            teamMatch.teamId, 
+                            teamMatch.matchId
                          ];
-        return DBA.query("INSERT INTO `robotMatch` (robotId, matchId) "
+        return DBA.query("INSERT INTO `teamMatch` (teamId, matchId) "
                         +"VALUES (?,?)", parameters);
     }
     
